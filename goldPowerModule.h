@@ -7,7 +7,7 @@
 class goldPowerModule
 {
 public:
-    void begin(uint8_t tx, uint8_t rx, uint8_t waitResponseInterval = 50, uint16_t speed = 4800),
+    void begin(uint8_t tx, uint8_t rx, uint8_t ReDe485pin = 0, uint8_t waitResponseInterval = 50, uint16_t speed = 4800),
         setReadInterval(uint16_t interval),
         setTimeOutInterval(uint16_t interval),
         setLoopInterval(uint16_t interval);
@@ -21,7 +21,8 @@ public:
 
     uint8_t
         alarm,
-        protection;
+        protection,
+        ReDe485pin;
 
     int8_t
     loop();

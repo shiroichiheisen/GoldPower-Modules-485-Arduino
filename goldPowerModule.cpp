@@ -1,9 +1,13 @@
 #include "goldPowerModule.h"
 
-void goldPowerModule::begin(uint8_t tx, uint8_t rx, uint8_t waitResponseInterval, uint16_t speed)
+void goldPowerModule::begin(uint8_t tx, uint8_t rx, uint8_t ReDe485pin, uint8_t waitResponseInterval, uint16_t speed)
 {
     RS485.begin(speed, SERIAL_8N1, rx, tx);
     this->waitResponseInterval = waitResponseInterval;
+    this->ReDe485pin = ReDe485pin;
+
+    if (ReDe485pin)
+        pinMode(ReDe485pin, OUTPUT);
 }
 
 int8_t goldPowerModule::loop()
@@ -215,6 +219,11 @@ bool goldPowerModule::setOutputOnOff(bool onOff)
 
 bool goldPowerModule::sendMessageBruteForce(uint8_t *buffer, uint8_t size, bool clearRx)
 {
+    if (ReDe485pin)
+        digitalWrite(ReDe485pin, HIGH);
+
+    delay(1);
+
     timeOutInterval.start(timeOutIntervalTime, AsyncDelay::MILLIS);
 
     while (!RS485.available())
@@ -225,6 +234,8 @@ bool goldPowerModule::sendMessageBruteForce(uint8_t *buffer, uint8_t size, bool 
         if (readLoopDataArray[size - 2] == 0xFF)
             readLoopDataArray[size - 2] = 0x00;
 
+        if (ReDe485pin)
+            digitalWrite(ReDe485pin, LOW);
         delay(waitResponseInterval);
 
         if (timeOutInterval.isExpired())
@@ -240,8 +251,15 @@ bool goldPowerModule::sendMessageBruteForce(uint8_t *buffer, uint8_t size, bool 
 
 bool goldPowerModule::sendMessage(uint8_t *buffer, uint8_t size, bool clearRx)
 {
+    if (ReDe485pin)
+        digitalWrite(ReDe485pin, HIGH);
+
+    delay(1);
+
     RS485.write(readLoopDataArray, 10);
 
+    if (ReDe485pin)
+        digitalWrite(ReDe485pin, LOW);
     delay(waitResponseInterval);
 
     if (RS485.available())
@@ -249,6 +267,7 @@ bool goldPowerModule::sendMessage(uint8_t *buffer, uint8_t size, bool clearRx)
         if (clearRx)
             while (RS485.available())
                 RS485.read();
+
         return true;
     }
     else
